@@ -1,0 +1,61 @@
+plugins {
+    id "java"
+    id "signing"
+    id "ninja.miserable.blossom" version "1.0.1"
+    id "com.github.johnrengelman.shadow" version "2.0.1"
+    id "org.spongepowered.plugin" version "0.8.1"
+    id 'com.qixalite.spongestart2' version '3.0.1'
+}
+
+group = "mr_krab.dupefixer"
+version = "${major}.${minor}.${patch}-${api}-${suffix}"
+description = "Fix dupes in mods."
+
+if (System.getenv().BUILD_NUMBER != null) {
+    version += "-${System.getenv().BUILD_NUMBER}"
+}
+
+compileJava {
+    sourceCompatibility = targetCompatibility = "1.8"
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    jcenter()
+    maven {
+        name = "Sponge"
+        url = "http://repo.spongepowered.org/maven"
+    }
+    maven {
+        name = "Forge"
+        url = "http://files.minecraftforge.net/maven"
+    }
+    maven {
+        name = 'bstats'
+        url = 'http://repo.bstats.org/content/repositories/releases/'
+    }
+}
+
+dependencies {
+    compile("org.spongepowered:spongeapi:${spongeapi}")
+	compile("me.ryanhamshire:griefprevention:${griefprevention}:api")
+	runtimeOnly("me.ryanhamshire:griefprevention:${griefprevention}")
+}
+
+spongestart {
+    online 'false'
+    minecraft '1.12.2'
+    type 'bleeding'
+    spongeForge properties.spongeforge
+    forgeServerFolder 'run/API7/'
+}
+
+signing {
+    required {Project.hasProperty("signing.keyId")}
+    sign configurations.archives, configurations.shadow
+}
+
+build.dependsOn(shadowJar)

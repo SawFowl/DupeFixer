@@ -1,0 +1,53 @@
+# Версия конфига. Не менять!
+Config-Version: 1
+# Дебаг. Используется для поиска предметов и инвентарей с помощью которых потенциально может выполняться дюп.
+Debug: true
+# Параметры для слушателя выбрасывания вещей.
+FixContainer:
+    ItemList:
+        # Если true, то список ниже будет считаться черным, при false белым.
+        BlackList: true
+        # Список предметов.
+        List:
+            - "forestry:portable_alyzer"
+            - "forestry:adventurer_bag"
+            - "forestry:adventurer_bag_t2"
+            - "forestry:apiarist_bag"
+            - "forestry:lepidopterist_bag"
+            - "forestry:miner_bag"
+            - "forestry:miner_bag_t2"
+            - "forestry:digger_bag"
+            - "forestry:digger_bag_t2"
+            - "forestry:forester_bag"
+            - "forestry:forester_bag_t2"
+            - "forestry:hunter_bag"
+            - "forestry:hunter_bag_t2"
+            - "forestry:builder_bag"
+            - "forestry:builder_bag_t2"
+            - "botany:botanist_bag"
+    ContainerList:
+        # Если true, то список ниже будет считаться черным, при false белым.
+        BlackList: false
+        # Список названий инвентарей. Обрабатывается по принципу REGEX так как мне не удалось получить точное имя инвентарей из модов.
+        List:
+            - ContainerPlayer
+            - ContainerChest
+            - ContainerShulkerBox
+    Messages:
+        SendToPlayer: true
+        Console: "&cИгрок &b%player% &cпопытался дюпнуть с помощью предмета с id &a%item_id%"
+        Player: "&4Дюпать в одиночке будешь, а тут изволь играть честно."
+        Debug: "&eИгрок &b%player% &eвыбросил предмет &f- &a%item%&e. Идентификатор открытого контейнера &f- &a%сontainer%"
+# Включать только при наличии GriefPrevention!
+# Это исправление дюпа жидкостей через приват в котором у игрока нет прав на взаимодействие с блоком, но может использовать предметы
+FixFluidDupe:
+    Enable: true
+    ItemList:
+        # Черный список предметов.
+        List:
+            - "minecraft:bucket"
+            - "minecraft:glass_bottle"
+    Messages:
+        SendToPlayer: true
+        Console: "&cИгрок &b%player% &cпопытался дюпнуть жидкость по координатам &a%coordinates%"
+        Player: "&4Дюпать в одиночке будешь, а тут изволь играть честно."
