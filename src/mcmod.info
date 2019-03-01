@@ -2,15 +2,15 @@
     {
         "modid": "dupefixer",
         "name": "DupeFixer",
-        "version": "1.0",
+        "version": "1.1",
         "description": "Fix dupes in mods",
 		"authorList": [ "Mr_Krab" ],
         "dependencies": [
             "griefprevention@4.3.0",
-            "spongeapi@7.0.0"
+            "spongeapi@7.1.0"
         ],
         "requiredMods": [
-            "spongeapi@7.0.0"
+            "spongeapi@7.1.0"
         ]
     }
 ]

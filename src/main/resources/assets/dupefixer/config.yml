@@ -1,13 +1,15 @@
-# Версия конфига. Не менять!
-Config-Version: 1
-# Дебаг. Используется для поиска предметов и инвентарей с помощью которых потенциально может выполняться дюп.
-Debug: true
-# Параметры для слушателя выбрасывания вещей.
+# Version of the config. Do not change!
+Config-Version: 2
+# Debag used to search for items and containers with the help of which potential dupes can be performed.
+Debug: false
+# When the 'Enable' parameter is changed, a server reboot is required.
+# Parameters for the listener throwing items.
 FixContainer:
+    Enable: false
     ItemList:
-        # Если true, то список ниже будет считаться черным, при false белым.
+        # If true, then the list below will be considered black, otherwise white.
         BlackList: true
-        # Список предметов.
+        # List of items.
         List:
             - "forestry:portable_alyzer"
             - "forestry:adventurer_bag"
@@ -26,28 +28,48 @@ FixContainer:
             - "forestry:builder_bag_t2"
             - "botany:botanist_bag"
     ContainerList:
-        # Если true, то список ниже будет считаться черным, при false белым.
+        # If true, then the list below will be considered black, otherwise white.
         BlackList: false
-        # Список названий инвентарей. Обрабатывается по принципу REGEX так как мне не удалось получить точное имя инвентарей из модов.
+        # List of container names.
         List:
             - ContainerPlayer
             - ContainerChest
             - ContainerShulkerBox
     Messages:
         SendToPlayer: true
-        Console: "&cИгрок &b%player% &cпопытался дюпнуть с помощью предмета с id &a%item_id%"
-        Player: "&4Дюпать в одиночке будешь, а тут изволь играть честно."
-        Debug: "&eИгрок &b%player% &eвыбросил предмет &f- &a%item%&e. Идентификатор открытого контейнера &f- &a%сontainer%"
-# Включать только при наличии GriefPrevention!
-# Это исправление дюпа жидкостей через приват в котором у игрока нет прав на взаимодействие с блоком, но может использовать предметы
+        Console: "&cPlayer &b%player% &ctrying to dupe using an item with id &a%item_id%&c."
+        Player: "&4Sorry, but this dupe is no longer working for us..."
+        Debug: "&ePlayer &b%player% &ethrown item &f- &a%item%&e. Open container ID &f- &a%сontainer%&e."
+# Works only with GriefPrevention!
+# This is a fix of fluids in claim in which the player does not have rights to interact with the block, but can use items.
 FixFluidDupe:
-    Enable: true
+    Enable: false
     ItemList:
-        # Черный список предметов.
+        # Blacklist items.
         List:
             - "minecraft:bucket"
             - "minecraft:glass_bottle"
     Messages:
         SendToPlayer: true
-        Console: "&cИгрок &b%player% &cпопытался дюпнуть жидкость по координатам &a%coordinates%"
-        Player: "&4Дюпать в одиночке будешь, а тут изволь играть честно."
+        Console: "&cPlayer &b%player% &ctried to dupe the fluid along the coordinates &f- &a%coordinates%&c."
+        Player: "&4Sorry, but this dupe is no longer working for us..."
+# Cancels a click on a subject with the Shift key held down.
+BlockShiftClick:
+    Enable: false
+    ItemList:
+        # If true, then the list below will be considered black, otherwise white.
+        BlackList: true
+        # List of items.
+        List:
+            - "geneticsreborn:organicmatter"
+    ContainerList:
+        # If true, then the list below will be considered black, otherwise white.
+        BlackList: true
+        # List of container names.
+        List:
+            - "ContainerCellAnalyser"
+    Messages:
+        SendToPlayer: true
+        Console: "&cPlayer &b%player% &ctrying to dupe using an item with id &a%item_id%&c."
+        Player: "&4Sorry, but in this container this action is prohibited."
+        Debug: "&ePlayer &b%player% &euse ShiftClick with item &f- &a%item%&e. Open container ID &f- &a%сontainer%&e."

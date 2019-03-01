@@ -34,15 +34,16 @@ import com.google.inject.Inject;
 
 import me.ryanhamshire.griefprevention.GriefPrevention;
 import me.ryanhamshire.griefprevention.api.GriefPreventionApi;
+import mr_krab.dupefixer.listeners.DropListener;
 import mr_krab.dupefixer.listeners.InteractItemListenerFluidFix;
-import mr_krab.dupefixer.listeners.InventoryListener;
+import mr_krab.dupefixer.listeners.ShiftClickListener;
 import mr_krab.dupefixer.utils.ConfigUtil;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 
 @Plugin(id = "dupefixer",
 	name = "DupeFixer",
-	version = "1.0",
+	version = "1.1",
 	authors = "Mr_Krab",
 	dependencies = {
 		@Dependency(id = "griefprevention", optional = true)
@@ -103,7 +104,18 @@ public class DupeFixer {
 		configUtil = new ConfigUtil();
 		load();
 		configUtil.checkConfigVersion();
-		Sponge.getEventManager().registerListeners(this, new InventoryListener(this));
+		registerListeners();
+	}
+	
+	@Listener
+	public void onReload(GameReloadEvent event) {
+		load();
+	}
+	
+	private void registerListeners() {
+		if(rootNode.getNode("FixContainer", "Enable").getBoolean()) {
+			Sponge.getEventManager().registerListeners(this, new DropListener(this));
+		}
 		if(rootNode.getNode("FixFluidDupe", "Enable").getBoolean()) {
 			try {
 				griefPrevention = GriefPrevention.getApi();
@@ -114,11 +126,8 @@ public class DupeFixer {
 				Sponge.getEventManager().registerListeners(this, new InteractItemListenerFluidFix(this));
 			}
 		}
-		
-	}
-	
-	@Listener
-	public void onReload(GameReloadEvent event) {
-		load();
+		if(rootNode.getNode("BlockShiftClick", "Enable").getBoolean()) {
+			Sponge.getEventManager().registerListeners(this, new ShiftClickListener(this));
+		}
 	}
 }
