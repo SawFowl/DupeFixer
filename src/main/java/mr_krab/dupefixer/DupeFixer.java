@@ -63,15 +63,10 @@ public class DupeFixer {
 	private YAMLConfigurationLoader configLoader;
 
 	private Logger logger;
-
-	private static GriefPreventionApi griefPrevention;
 	
 	private static DupeFixer instance;
 	private static ConfigUtil configUtil;
-
-	public GriefPreventionApi getGriefPrevention() {
-		return griefPrevention;
-	}
+	
 	public Path getConfigDir() {
 		return configDir;
 	}
@@ -117,13 +112,8 @@ public class DupeFixer {
 			Sponge.getEventManager().registerListeners(this, new DropListener(this));
 		}
 		if(rootNode.getNode("FixFluidDupe", "Enable").getBoolean()) {
-			try {
-				griefPrevention = GriefPrevention.getApi();
-			} catch (IllegalStateException e) {
-				logger.error("GriefPrevention API failed to load!");
-			}
-			if(griefPrevention != null) {
-				Sponge.getEventManager().registerListeners(this, new InteractItemListenerFluidFix(this));
+			if (Sponge.getPluginManager().isLoaded("griefprevention")) {
+					Sponge.getEventManager().registerListeners(this,new InteractItemListenerFluidFix(this));
 			}
 		}
 		if(rootNode.getNode("BlockShiftClick", "Enable").getBoolean()) {
