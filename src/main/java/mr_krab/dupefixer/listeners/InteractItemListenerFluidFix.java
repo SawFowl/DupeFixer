@@ -3,9 +3,7 @@ package mr_krab.dupefixer.listeners;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import me.ryanhamshire.griefprevention.GriefPrevention;
 import me.ryanhamshire.griefprevention.api.GriefPreventionApi;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.item.inventory.InteractItemEvent;
