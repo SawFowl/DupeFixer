@@ -3,6 +3,9 @@ package mr_krab.dupefixer.listeners;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import me.ryanhamshire.griefprevention.GriefPrevention;
+import me.ryanhamshire.griefprevention.api.GriefPreventionApi;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.item.inventory.InteractItemEvent;
@@ -14,15 +17,15 @@ import ninja.leaping.configurate.ConfigurationNode;
 public class InteractItemListenerFluidFix {
 
 	private DupeFixer plugin;
-	private static GriefPreventionApi griefPrevention;
 
 	public InteractItemListenerFluidFix(DupeFixer plugin) {
 		this.plugin = plugin;
 	}
 
+	public static GriefPreventionApi griefPrevention;
+
 	@Listener
 	public void fixBucketDupe(InteractItemEvent.Secondary event) {
-		griefPrevention = GriefPrevention.getApi();
 		if(event.getSource() instanceof Player) {
 			Player player = (Player) event.getSource();
 			if(!getGriefPrevention().getClaimManager(player.getWorld()).getClaimAt(player.getLocation()).isTrusted(player.getUniqueId())) {
@@ -39,7 +42,8 @@ public class InteractItemListenerFluidFix {
 			}
 		}
 	}
-		private static GriefPreventionApi getGriefPrevention () {
+
+	private static GriefPreventionApi getGriefPrevention () {
 
 		return griefPrevention;
 	}
