@@ -33,6 +33,7 @@ import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import com.google.inject.Inject;
 
 import me.ryanhamshire.griefprevention.GriefPrevention;
+import me.ryanhamshire.griefprevention.api.GriefPreventionApi;
 import mr_krab.dupefixer.listeners.DropListener;
 import mr_krab.dupefixer.listeners.InteractItemListenerFluidFix;
 import mr_krab.dupefixer.listeners.ShiftClickListener;
@@ -63,9 +64,14 @@ public class DupeFixer {
 
 	private Logger logger;
 
+	private static GriefPreventionApi griefPrevention;
+	
 	private static DupeFixer instance;
 	private static ConfigUtil configUtil;
 
+	public GriefPreventionApi getGriefPrevention() {
+		return griefPrevention;
+	}
 	public Path getConfigDir() {
 		return configDir;
 	}
@@ -92,7 +98,7 @@ public class DupeFixer {
 	}
 
 	@Listener
-	public void onPostInitialization(GamePostInitializationEvent event) {
+	public void onPostInitialization(GamePostInitializationEvent event) throws IOException {
 		logger = (Logger)LoggerFactory.getLogger("DupeFixer");
 		instance = this;
 		configUtil = new ConfigUtil();
@@ -111,9 +117,13 @@ public class DupeFixer {
 			Sponge.getEventManager().registerListeners(this, new DropListener(this));
 		}
 		if(rootNode.getNode("FixFluidDupe", "Enable").getBoolean()) {
-			if (Sponge.getPluginManager().isLoaded("griefprevention")) {
-				InteractItemListenerFluidFix.griefPrevention = GriefPrevention.getApi();
-				Sponge.getEventManager().registerListeners(this,new InteractItemListenerFluidFix(this));
+			try {
+				griefPrevention = GriefPrevention.getApi();
+			} catch (IllegalStateException e) {
+				logger.error("GriefPrevention API failed to load!");
+			}
+			if(griefPrevention != null) {
+				Sponge.getEventManager().registerListeners(this, new InteractItemListenerFluidFix(this));
 			}
 		}
 		if(rootNode.getNode("BlockShiftClick", "Enable").getBoolean()) {
