@@ -26,18 +26,20 @@ import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
+import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 
 import com.google.inject.Inject;
 
+import br.net.fabiozumbi12.RedProtect.Sponge.RedProtect;
 import me.ryanhamshire.griefprevention.GriefPrevention;
-import me.ryanhamshire.griefprevention.api.GriefPreventionApi;
 import mr_krab.dupefixer.listeners.DropListener;
 import mr_krab.dupefixer.listeners.InteractItemListenerFluidFix;
 import mr_krab.dupefixer.listeners.ShiftClickListener;
 import mr_krab.dupefixer.utils.ConfigUtil;
+import mr_krab.dupefixer.utils.ProtectPluginsAPI;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 
@@ -46,7 +48,8 @@ import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 	version = "1.1",
 	authors = "Mr_Krab",
 	dependencies = {
-		@Dependency(id = "griefprevention", optional = true)
+		@Dependency(id = "griefprevention", optional = true),
+		@Dependency(id = "redprotect", optional = true)
 	})
 public class DupeFixer {
 	
@@ -64,14 +67,12 @@ public class DupeFixer {
 
 	private Logger logger;
 
-	private static GriefPreventionApi griefPrevention;
-	
 	private static DupeFixer instance;
 	private static ConfigUtil configUtil;
+	private static ProtectPluginsAPI protectPluginsAPI;
+	
+	boolean foundRP = false;
 
-	public GriefPreventionApi getGriefPrevention() {
-		return griefPrevention;
-	}
 	public Path getConfigDir() {
 		return configDir;
 	}
@@ -87,6 +88,9 @@ public class DupeFixer {
 	public static DupeFixer getInstance() {
 		return instance;
 	}
+	public ProtectPluginsAPI getProtectPluginsAPI() {
+		return protectPluginsAPI;
+	}
 
 	public void load() {
 		configLoader = YAMLConfigurationLoader.builder().setPath(configDir.resolve("config.yml")).setFlowStyle(FlowStyle.BLOCK).build();
@@ -98,13 +102,22 @@ public class DupeFixer {
 	}
 
 	@Listener
-	public void onPostInitialization(GamePostInitializationEvent event) throws IOException {
+	public void onPostInitialization(GamePostInitializationEvent event) {
 		logger = (Logger)LoggerFactory.getLogger("DupeFixer");
 		instance = this;
 		configUtil = new ConfigUtil();
 		load();
 		configUtil.checkConfigVersion();
+		protectPluginsAPI = new ProtectPluginsAPI();
 		registerListeners();
+	}
+
+	@Listener
+	public void onCompleteLoadServer(GameStartedServerEvent event) {
+		if(foundRP) {
+			protectPluginsAPI.setRedProtect(RedProtect.get());
+			protectPluginsAPI.setRedProtectAPI(RedProtect.get().getAPI());
+		}
 	}
 	
 	@Listener
@@ -117,13 +130,20 @@ public class DupeFixer {
 			Sponge.getEventManager().registerListeners(this, new DropListener(this));
 		}
 		if(rootNode.getNode("FixFluidDupe", "Enable").getBoolean()) {
-			try {
-				griefPrevention = GriefPrevention.getApi();
-			} catch (IllegalStateException e) {
-				logger.error("GriefPrevention API failed to load!");
+			if (Sponge.getPluginManager().isLoaded("griefprevention")) {
+				protectPluginsAPI.setGriefPreventionAPI(GriefPrevention.getApi());
+				Sponge.getEventManager().registerListeners(this,new InteractItemListenerFluidFix(this));
 			}
-			if(griefPrevention != null) {
-				Sponge.getEventManager().registerListeners(this, new InteractItemListenerFluidFix(this));
+			/*
+			 * Руки оторвать бы разработчику RedProtect за то, как он предоставляет API своего плагина.
+			 * The RedProtect developer needs to tear off his hands for how he provides his plugin API.
+			 */
+			if(Sponge.getPluginManager().getPlugin("redprotect").isPresent()) {
+				foundRP = true;
+				Sponge.getEventManager().registerListeners(this,new InteractItemListenerFluidFix(this));
+			}
+			if(!protectPluginsAPI.isPresentGP() && !foundRP) {
+				logger.error("None of the supported claims protection plugins were found!");
 			}
 		}
 		if(rootNode.getNode("BlockShiftClick", "Enable").getBoolean()) {
