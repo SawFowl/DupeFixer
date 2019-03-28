@@ -36,7 +36,8 @@ import com.google.inject.Inject;
 import br.net.fabiozumbi12.RedProtect.Sponge.RedProtect;
 import me.ryanhamshire.griefprevention.GriefPrevention;
 import mr_krab.dupefixer.listeners.DropListener;
-import mr_krab.dupefixer.listeners.InteractItemListenerFluidFix;
+import mr_krab.dupefixer.listeners.InteractItemListenerFluidFixGP;
+import mr_krab.dupefixer.listeners.InteractItemListenerFluidFixRP;
 import mr_krab.dupefixer.listeners.ShiftClickListener;
 import mr_krab.dupefixer.utils.ConfigUtil;
 import mr_krab.dupefixer.utils.ProtectPluginsAPI;
@@ -45,7 +46,7 @@ import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 
 @Plugin(id = "dupefixer",
 	name = "DupeFixer",
-	version = "1.1",
+	version = "1.2",
 	authors = "Mr_Krab",
 	dependencies = {
 		@Dependency(id = "griefprevention", optional = true),
@@ -132,7 +133,7 @@ public class DupeFixer {
 		if(rootNode.getNode("FixFluidDupe", "Enable").getBoolean()) {
 			if (Sponge.getPluginManager().isLoaded("griefprevention")) {
 				protectPluginsAPI.setGriefPreventionAPI(GriefPrevention.getApi());
-				Sponge.getEventManager().registerListeners(this,new InteractItemListenerFluidFix(this));
+				Sponge.getEventManager().registerListeners(this,new InteractItemListenerFluidFixGP(this));
 			}
 			/*
 			 * Руки оторвать бы разработчику RedProtect за то, как он предоставляет API своего плагина.
@@ -140,7 +141,7 @@ public class DupeFixer {
 			 */
 			if(Sponge.getPluginManager().getPlugin("redprotect").isPresent()) {
 				foundRP = true;
-				Sponge.getEventManager().registerListeners(this,new InteractItemListenerFluidFix(this));
+				Sponge.getEventManager().registerListeners(this,new InteractItemListenerFluidFixRP(this));
 			}
 			if(!protectPluginsAPI.isPresentGP() && !foundRP) {
 				logger.error("None of the supported claims protection plugins were found!");

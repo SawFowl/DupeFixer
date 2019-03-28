@@ -32,10 +32,6 @@ public class ProtectPluginsAPI {
 
 	public void setRedProtect(RedProtect redProtect) {
 		this.redProtect = redProtect;
-		try {
-			setRedProtectAPI(this.redProtect.getAPI());
-		} catch (Exception e) {
-		}
 	}
 
 	public void setRedProtectAPI(RedProtectAPI redProtectAPI) {
