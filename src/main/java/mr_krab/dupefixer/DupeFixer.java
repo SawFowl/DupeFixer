@@ -17,6 +17,8 @@
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,27 +28,32 @@ import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
+import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 
 import com.google.inject.Inject;
 
+import br.net.fabiozumbi12.RedProtect.Sponge.RedProtect;
 import me.ryanhamshire.griefprevention.GriefPrevention;
-import me.ryanhamshire.griefprevention.api.GriefPreventionApi;
 import mr_krab.dupefixer.listeners.DropListener;
-import mr_krab.dupefixer.listeners.InteractItemListenerFluidFix;
+import mr_krab.dupefixer.listeners.InteractItemListenerFluidFixGP;
+import mr_krab.dupefixer.listeners.InteractItemListenerFluidFixRP;
+import mr_krab.dupefixer.listeners.PortalListener;
 import mr_krab.dupefixer.listeners.ShiftClickListener;
 import mr_krab.dupefixer.utils.ConfigUtil;
+import mr_krab.dupefixer.utils.ProtectPluginsAPI;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 
 @Plugin(id = "dupefixer",
 	name = "DupeFixer",
-	version = "1.1",
+	version = "1.3",
 	authors = "Mr_Krab",
 	dependencies = {
-		@Dependency(id = "griefprevention", optional = true)
+		@Dependency(id = "griefprevention", optional = true),
+		@Dependency(id = "redprotect", optional = true)
 	})
 public class DupeFixer {
 	
@@ -64,14 +71,18 @@ public class DupeFixer {
 
 	private Logger logger;
 
-	private static GriefPreventionApi griefPrevention;
-	
 	private static DupeFixer instance;
 	private static ConfigUtil configUtil;
+	private static ProtectPluginsAPI protectPluginsAPI;
+	private static DropListener dropListener;
+	private static InteractItemListenerFluidFixGP iGp;
+	private static InteractItemListenerFluidFixRP iRp;
+	private static PortalListener portalListener;
+	private static ShiftClickListener shiftClickListener;
+	
+	boolean foundRP = false;
+	List<String> enableListeners = new ArrayList<String>();
 
-	public GriefPreventionApi getGriefPrevention() {
-		return griefPrevention;
-	}
 	public Path getConfigDir() {
 		return configDir;
 	}
@@ -87,6 +98,34 @@ public class DupeFixer {
 	public static DupeFixer getInstance() {
 		return instance;
 	}
+	public ProtectPluginsAPI getProtectPluginsAPI() {
+		return protectPluginsAPI;
+	}
+
+	@Listener
+	public void onPostInitialization(GamePostInitializationEvent event) {
+		logger = (Logger)LoggerFactory.getLogger("DupeFixer");
+		instance = this;
+		configUtil = new ConfigUtil();
+		load();
+		configUtil.checkConfigVersion();
+		protectPluginsAPI = new ProtectPluginsAPI();
+		updateListeners();
+	}
+
+	@Listener
+	public void onCompleteLoadServer(GameStartedServerEvent event) {
+		if(foundRP) {
+			protectPluginsAPI.setRedProtect(RedProtect.get());
+			protectPluginsAPI.setRedProtectAPI(RedProtect.get().getAPI());
+		}
+	}
+	
+	@Listener
+	public void onReload(GameReloadEvent event) {
+		load();
+		updateListeners();
+	}
 
 	public void load() {
 		configLoader = YAMLConfigurationLoader.builder().setPath(configDir.resolve("config.yml")).setFlowStyle(FlowStyle.BLOCK).build();
@@ -96,38 +135,74 @@ public class DupeFixer {
 			e.printStackTrace();
 		}
 	}
-
-	@Listener
-	public void onPostInitialization(GamePostInitializationEvent event) throws IOException {
-		logger = (Logger)LoggerFactory.getLogger("DupeFixer");
-		instance = this;
-		configUtil = new ConfigUtil();
-		load();
-		configUtil.checkConfigVersion();
-		registerListeners();
-	}
 	
-	@Listener
-	public void onReload(GameReloadEvent event) {
-		load();
-	}
-	
-	private void registerListeners() {
-		if(rootNode.getNode("FixContainer", "Enable").getBoolean()) {
-			Sponge.getEventManager().registerListeners(this, new DropListener(this));
+	private void updateListeners() {
+		if(rootNode.getNode("FixContainer", "Enable").getBoolean() && !enableListeners.contains("DropListener")) {
+			dropListener = new DropListener(this);
+			Sponge.getEventManager().registerListeners(this, dropListener);
+			enableListeners.add("DropListener");
+		} else {
+			if(dropListener != null) {
+				Sponge.getEventManager().unregisterListeners(dropListener);
+				enableListeners.remove("DropListener");
+				dropListener = null;
+			}
 		}
+		
 		if(rootNode.getNode("FixFluidDupe", "Enable").getBoolean()) {
-			try {
-				griefPrevention = GriefPrevention.getApi();
-			} catch (IllegalStateException e) {
-				logger.error("GriefPrevention API failed to load!");
+			iRp = new InteractItemListenerFluidFixRP(this);
+			if (Sponge.getPluginManager().isLoaded("griefprevention") && !enableListeners.contains("InteractItemListenerFluidFixGP")) {
+				protectPluginsAPI.setGriefPreventionAPI(GriefPrevention.getApi());
+				iGp = new InteractItemListenerFluidFixGP(this);
+				Sponge.getEventManager().registerListeners(this, iGp);
+				enableListeners.add("InteractItemListenerFluidFixGP");
+			} else {
+				if(iGp != null) {
+					Sponge.getEventManager().unregisterListeners(iGp);
+					enableListeners.remove("InteractItemListenerFluidFixGP");
+					iGp = null;
+				}
 			}
-			if(griefPrevention != null) {
-				Sponge.getEventManager().registerListeners(this, new InteractItemListenerFluidFix(this));
+			/*
+			 * Руки оторвать бы разработчику RedProtect за то, как он предоставляет API своего плагина.
+			 * The RedProtect developer needs to tear off his hands for how he provides his plugin API.
+			 */
+			if(Sponge.getPluginManager().getPlugin("redprotect").isPresent() && !enableListeners.contains("InteractItemListenerFluidFixRP")) {
+				foundRP = true;
+				Sponge.getEventManager().registerListeners(this, iRp);
+				enableListeners.add("InteractItemListenerFluidFixRP");
+			} else {
+				if(iRp != null) {
+					Sponge.getEventManager().unregisterListeners(iRp);
+					enableListeners.remove("InteractItemListenerFluidFixRP");
+					iRp = null;
+				}
+			}
+			if(!protectPluginsAPI.isPresentGP() && !foundRP) {
+				logger.error("None of the supported claims protection plugins were found!");
 			}
 		}
-		if(rootNode.getNode("BlockShiftClick", "Enable").getBoolean()) {
-			Sponge.getEventManager().registerListeners(this, new ShiftClickListener(this));
+		if(rootNode.getNode("BlockShiftClick", "Enable").getBoolean() && !enableListeners.contains("ShiftClickListener")) {
+			shiftClickListener = new ShiftClickListener(this);
+			Sponge.getEventManager().registerListeners(this, shiftClickListener);
+			enableListeners.add("ShiftClickListener");
+		} else {
+			if(shiftClickListener != null) {
+				Sponge.getEventManager().unregisterListeners(shiftClickListener);
+				enableListeners.remove("ShiftClickListener");
+				shiftClickListener = null;
+			}
+		}
+		if(rootNode.getNode("PortalLock", "Enable").getBoolean() && !enableListeners.contains("PortalListener")) {
+			portalListener = new PortalListener(this);
+			Sponge.getEventManager().registerListeners(this, portalListener);
+			enableListeners.add("PortalListener");
+		} else {
+			if(portalListener != null) {
+				Sponge.getEventManager().unregisterListeners(portalListener);
+				enableListeners.remove("PortalListener");
+				portalListener = null;
+			}
 		}
 	}
 }

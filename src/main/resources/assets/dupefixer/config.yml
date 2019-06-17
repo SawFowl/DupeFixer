@@ -1,5 +1,5 @@
 # Version of the config. Do not change!
-Config-Version: 2
+Config-Version: 3
 # Debag used to search for items and containers with the help of which potential dupes can be performed.
 Debug: false
 # When the 'Enable' parameter is changed, a server reboot is required.
@@ -73,3 +73,21 @@ BlockShiftClick:
         Console: "&cPlayer &b%player% &ctrying to dupe using an item with id &a%item_id%&c."
         Player: "&4Sorry, but in this container this action is prohibited."
         Debug: "&ePlayer &b%player% &euse ShiftClick with item &f- &a%item%&e. Open container ID &f- &a%сontainer%&e."
+PortalLock:
+    Enable: false
+    # Worlds in which teleportation will be blocked
+    AllWorlds: true
+    BlockTeleportation:
+        Items: true
+        Mobs: false
+        Players: false
+    ExampleWorld1:
+        BlockTeleportation:
+            Items: true
+            Mobs: false
+            Players: false
+    ExampleWorld2:
+        BlockTeleportation:
+            Items: true
+            Mobs: true
+            Players: false

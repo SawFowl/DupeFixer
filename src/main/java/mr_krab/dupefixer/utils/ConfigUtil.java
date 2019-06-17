@@ -35,7 +35,7 @@ public class ConfigUtil {
 		File renamedConfig = new File(plugin.getConfigDir() + File.separator + "ConfigOld.yml");
 		if (!plugin.getRootNode().getNode("Config-Version").isVirtual()) {
 			// This part can be supplemented.
-			if (plugin.getRootNode().getNode("Config-Version").getInt() != 2) {
+			if (plugin.getRootNode().getNode("Config-Version").getInt() != 3) {
 				plugin.getLogger().warn("Attention!!! The version of your configuration file does not match the current one!");
 				if(oldConfig.exists()) {
 					oldConfig.renameTo(renamedConfig);

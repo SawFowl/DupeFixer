@@ -43,6 +43,7 @@ dependencies {
     compile("org.spongepowered:spongeapi:${spongeapi}")
 	compile("me.ryanhamshire:griefprevention:${griefprevention}:api")
 	runtimeOnly("me.ryanhamshire:griefprevention:${griefprevention}")
+	compile files('libraries/RedProtect-7.5.6-b149-Universal.jar')
 }
 
 spongestart {
