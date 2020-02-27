@@ -1,5 +1,5 @@
 # Version of the config. Do not change!
-Config-Version: 3
+Config-Version: 4
 # Debag used to search for items and containers with the help of which potential dupes can be performed.
 Debug: false
 # When the 'Enable' parameter is changed, a server reboot is required.
@@ -91,3 +91,5 @@ PortalLock:
             Items: true
             Mobs: true
             Players: false
+AnvilFix:
+    Enable: false

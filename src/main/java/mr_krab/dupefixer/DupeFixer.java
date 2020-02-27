@@ -40,6 +40,7 @@ import me.ryanhamshire.griefprevention.GriefPrevention;
 import mr_krab.dupefixer.listeners.DropListener;
 import mr_krab.dupefixer.listeners.InteractItemListenerFluidFixGP;
 import mr_krab.dupefixer.listeners.InteractItemListenerFluidFixRP;
+import mr_krab.dupefixer.listeners.InventoryClickPrimaryAndSecondaryListener;
 import mr_krab.dupefixer.listeners.PortalListener;
 import mr_krab.dupefixer.listeners.ShiftClickListener;
 import mr_krab.dupefixer.utils.ConfigUtil;
@@ -49,7 +50,7 @@ import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 
 @Plugin(id = "dupefixer",
 	name = "DupeFixer",
-	version = "1.3",
+	version = "1.4",
 	authors = "Mr_Krab",
 	dependencies = {
 		@Dependency(id = "griefprevention", optional = true),
@@ -79,6 +80,7 @@ public class DupeFixer {
 	private static InteractItemListenerFluidFixRP iRp;
 	private static PortalListener portalListener;
 	private static ShiftClickListener shiftClickListener;
+	private static InventoryClickPrimaryAndSecondaryListener inventoryClickPrimaryAndSecondaryListener;
 	
 	boolean foundRP = false;
 	List<String> enableListeners = new ArrayList<String>();
@@ -202,6 +204,17 @@ public class DupeFixer {
 				Sponge.getEventManager().unregisterListeners(portalListener);
 				enableListeners.remove("PortalListener");
 				portalListener = null;
+			}
+		}
+		if(rootNode.getNode("AnvilFix", "Enable").getBoolean() && !enableListeners.contains("InventoryClickPrimaryAndSecondaryListener")) {
+			inventoryClickPrimaryAndSecondaryListener = new InventoryClickPrimaryAndSecondaryListener();
+			Sponge.getEventManager().registerListeners(this, inventoryClickPrimaryAndSecondaryListener);
+			enableListeners.add("InventoryClickPrimaryAndSecondaryListener");
+		} else {
+			if(inventoryClickPrimaryAndSecondaryListener != null) {
+				Sponge.getEventManager().unregisterListeners(inventoryClickPrimaryAndSecondaryListener);
+				enableListeners.remove("InventoryClickPrimaryAndSecondaryListener");
+				inventoryClickPrimaryAndSecondaryListener = null;
 			}
 		}
 	}
